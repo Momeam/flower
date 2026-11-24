@@ -1,0 +1,1719 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>ช่อดอกทานตะวันแด่คนพิเศษ 🌻 | 3D Sunflower Bouquet for Sweetheart</title>
+  
+  <!-- Google Fonts for Romantic Aesthetic -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Itim&family=Mitr:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+  
+  <!-- Three.js and OrbitControls -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <style>
+    :root {
+      --pink-bg: #fde8ed;
+      --pink-soft: #f9d2dc;
+      --pink-accent: #f08da4;
+      --pink-deep: #e06282;
+      --sun-yellow: #f5b301;
+      --gold-glow: rgba(255, 215, 0, 0.45);
+      --glass-bg: rgba(255, 255, 255, 0.65);
+      --glass-border: rgba(255, 255, 255, 0.85);
+      --shadow-soft: 0 10px 30px rgba(224, 98, 130, 0.15);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      font-family: 'Mitr', 'Itim', sans-serif;
+      background: radial-gradient(circle at 50% 45%, #fff5f7 0%, #fde4eb 50%, #f7cfdb 100%);
+      color: #5c3b47;
+      position: relative;
+    }
+
+    #webgl-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      outline: none;
+      cursor: grab;
+    }
+
+    #webgl-canvas:active {
+      cursor: grabbing;
+    }
+
+    /* Ambient Romantic Sparkle Overlay */
+    .sparkle-ambient {
+      position: absolute;
+      pointer-events: none;
+      z-index: 2;
+      inset: 0;
+      background: radial-gradient(circle at center, transparent 40%, rgba(247, 203, 219, 0.3) 100%);
+    }
+
+    /* Floating UI Container */
+    .ui-container {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px 24px;
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+
+    .ui-container.hidden-ui {
+      opacity: 0;
+      transform: scale(0.98);
+      pointer-events: none !important;
+    }
+
+    /* Top Bar */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      pointer-events: auto;
+    }
+
+    .title-badge {
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      padding: 12px 22px;
+      border-radius: 30px;
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      animation: floatBadge 4s ease-in-out infinite;
+    }
+
+    .title-badge h1 {
+      font-family: 'Itim', cursive;
+      font-size: 1.35rem;
+      font-weight: 500;
+      color: #9c274b;
+      letter-spacing: 0.5px;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .title-badge span.subtitle {
+      font-size: 0.78rem;
+      color: #925368;
+      display: block;
+      font-weight: 300;
+    }
+
+    .badge-sunflower-icon {
+      font-size: 1.7rem;
+      filter: drop-shadow(0 2px 5px rgba(245, 179, 1, 0.4));
+      animation: spinSlow 14s linear infinite;
+    }
+
+    @keyframes spinSlow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes floatBadge {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+
+    /* Action Toolbar */
+    .action-toolbar {
+      display: flex;
+      gap: 10px;
+      pointer-events: auto;
+    }
+
+    .tool-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 1px solid var(--glass-border);
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      color: #8c2b4c;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(224, 98, 130, 0.15);
+      transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      outline: none;
+    }
+
+    .tool-btn:hover {
+      transform: translateY(-3px) scale(1.08);
+      background: rgba(255, 255, 255, 0.9);
+      color: var(--pink-deep);
+      box-shadow: 0 6px 20px rgba(224, 98, 130, 0.3);
+    }
+
+    .tool-btn:active {
+      transform: translateY(1px) scale(0.95);
+    }
+
+    .tool-btn.active {
+      background: #e06282;
+      color: #fff;
+      border-color: #d1496d;
+      box-shadow: 0 0 15px rgba(224, 98, 130, 0.5);
+    }
+
+    /* Hint Box in Center Bottom */
+    .bottom-bar {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      pointer-events: auto;
+    }
+
+    .interaction-hint {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      padding: 8px 18px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      color: #8a485f;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 16px rgba(180, 80, 110, 0.08);
+    }
+
+    .interaction-hint i {
+      color: var(--pink-deep);
+    }
+
+    /* Bottom Control Pills */
+    .controls-pill {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 40px;
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 8px 30px rgba(180, 70, 100, 0.16);
+      max-width: 95vw;
+      overflow-x: auto;
+    }
+
+    .control-chip {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 16px;
+      background: rgba(255, 255, 255, 0.6);
+      border: 1px solid rgba(240, 141, 164, 0.25);
+      border-radius: 24px;
+      font-size: 0.86rem;
+      font-weight: 400;
+      color: #6e2c43;
+      cursor: pointer;
+      transition: all 0.22s ease;
+      white-space: nowrap;
+    }
+
+    .control-chip:hover {
+      background: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(224, 98, 130, 0.15);
+      color: #a81c49;
+    }
+
+    .control-chip.active {
+      background: linear-gradient(135deg, #f57a99, #e06282);
+      color: white;
+      border-color: #d14a6e;
+      box-shadow: 0 4px 15px rgba(224, 98, 130, 0.4);
+    }
+
+    .control-chip i {
+      font-size: 0.95rem;
+    }
+
+    /* Love Letter Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(80, 30, 50, 0.4);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .modal-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .letter-card {
+      background: #fffdfa;
+      background-image: radial-gradient(#f7e1e6 0.8px, transparent 0.8px);
+      background-size: 20px 20px;
+      border: 2px solid #f8c8d4;
+      border-radius: 28px;
+      max-width: 480px;
+      width: 100%;
+      padding: 34px 28px 28px;
+      box-shadow: 0 25px 60px rgba(120, 30, 60, 0.25);
+      position: relative;
+      transform: translateY(30px) scale(0.92);
+      transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .modal-backdrop.open .letter-card {
+      transform: translateY(0) scale(1);
+    }
+
+    .letter-ribbon {
+      position: absolute;
+      top: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #f08da4, #e06282);
+      color: white;
+      padding: 6px 20px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      box-shadow: 0 4px 12px rgba(224, 98, 130, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .close-modal-btn {
+      position: absolute;
+      top: 16px;
+      right: 18px;
+      background: #fdebf0;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      color: #9c274b;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s, background 0.2s;
+    }
+
+    .close-modal-btn:hover {
+      background: #f8c8d4;
+      transform: rotate(90deg);
+    }
+
+    .letter-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .letter-header h2 {
+      font-family: 'Itim', cursive;
+      color: #9c274b;
+      font-size: 1.55rem;
+      margin-bottom: 4px;
+    }
+
+    .letter-header p {
+      font-size: 0.85rem;
+      color: #9f6577;
+    }
+
+    .message-box {
+      background: #fff;
+      border: 1px dashed #f0a3b6;
+      border-radius: 18px;
+      padding: 18px 20px;
+      margin-bottom: 20px;
+      box-shadow: inset 0 2px 6px rgba(240, 141, 164, 0.08);
+    }
+
+    .message-text {
+      font-family: 'Itim', cursive;
+      font-size: 1.15rem;
+      line-height: 1.7;
+      color: #5a2637;
+      outline: none;
+      min-height: 100px;
+      white-space: pre-wrap;
+    }
+
+    .letter-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .btn-sweet {
+      padding: 10px 22px;
+      border-radius: 24px;
+      font-family: 'Mitr', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn-sweet-secondary {
+      background: #fdebf0;
+      color: #9c274b;
+    }
+
+    .btn-sweet-secondary:hover {
+      background: #f8c8d4;
+    }
+
+    .btn-sweet-primary {
+      background: linear-gradient(135deg, #f08da4, #e06282);
+      color: white;
+      box-shadow: 0 4px 15px rgba(224, 98, 130, 0.35);
+    }
+
+    .btn-sweet-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(224, 98, 130, 0.45);
+    }
+
+    /* Floating toggle button when UI is hidden */
+    .unhide-btn {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      z-index: 20;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 50%;
+      width: 46px;
+      height: 46px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      color: #9c274b;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .unhide-btn.show {
+      display: flex;
+    }
+
+    /* Toast Notification */
+    .toast-notice {
+      position: fixed;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-60px);
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid #f8c8d4;
+      color: #9c274b;
+      padding: 10px 24px;
+      border-radius: 30px;
+      font-size: 0.88rem;
+      box-shadow: 0 8px 25px rgba(224, 98, 130, 0.2);
+      z-index: 1000;
+      pointer-events: none;
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toast-notice.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .ui-container {
+        padding: 14px;
+      }
+      .title-badge h1 {
+        font-size: 1.1rem;
+      }
+      .title-badge span.subtitle {
+        display: none;
+      }
+      .controls-pill {
+        padding: 6px 10px;
+      }
+      .control-chip {
+        padding: 6px 12px;
+        font-size: 0.78rem;
+      }
+      .interaction-hint {
+        font-size: 0.74rem;
+        padding: 6px 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- WebGL 3D Canvas -->
+  <canvas id="webgl-canvas"></canvas>
+  <div class="sparkle-ambient"></div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast-notice">
+    <i data-lucide="sparkles"></i>
+    <span id="toast-msg">บันทึกรูปภาพเรียบร้อยแล้ว ✨</span>
+  </div>
+
+  <!-- Unhide Button (When Zen Mode Active) -->
+  <button id="unhide-btn" class="unhide-btn" title="แสดงเมนู">
+    <i data-lucide="eye"></i>
+  </button>
+
+  <!-- Interactive UI Overlay -->
+  <div id="ui-container" class="ui-container">
+    
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <div class="title-badge">
+        <span class="badge-sunflower-icon">🌻</span>
+        <div>
+          <h1>Bouquet for You</h1>
+          <span class="subtitle">ช่อดอกทานตะวัน 3D หมุนชมได้รอบทิศเพื่อหวานใจ</span>
+        </div>
+      </div>
+
+      <div class="action-toolbar">
+        <button id="btn-music" class="tool-btn" title="เปิด/ปิด เพลงกล่องดนตรี">
+          <i data-lucide="music"></i>
+        </button>
+        <button id="btn-camera-reset" class="tool-btn" title="รีเซ็ตมุมมอง">
+          <i data-lucide="rotate-ccw"></i>
+        </button>
+        <button id="btn-snapshot" class="tool-btn" title="บันทึกรูปช่อดอกไม้">
+          <i data-lucide="camera"></i>
+        </button>
+        <button id="btn-hide-ui" class="tool-btn" title="โหมดมินิมอล (ซ่อนเมนู)">
+          <i data-lucide="eye-off"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Bottom Controls -->
+    <div class="bottom-bar">
+      <div class="interaction-hint">
+        <i data-lucide="moon" style="color: #f5b301;"></i>
+        <span>แตะหรือลากเมาส์เพื่อหมุน 360° • คลิกที่ช่อดอกไม้เพื่อเปิดการ์ด "รักเท่าไปกลับดวงจันทร์" 🌙✨</span>
+      </div>
+
+      <div class="controls-pill">
+        <button id="chip-rotate" class="control-chip active">
+          <i data-lucide="rotate-cw"></i>
+          <span>หมุนอัตโนมัติ</span>
+        </button>
+
+        <button id="chip-fairy-lights" class="control-chip active">
+          <i data-lucide="sparkles"></i>
+          <span>ไฟประดับช่อ</span>
+        </button>
+
+        <button id="chip-petals" class="control-chip active">
+          <i data-lucide="heart"></i>
+          <span>โปรยความรัก</span>
+        </button>
+
+        <button id="chip-letter" class="control-chip">
+          <i data-lucide="mail-open"></i>
+          <span>การ์ดหวานใจ 💌</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Love Letter Modal -->
+  <div id="letter-modal" class="modal-backdrop">
+    <div class="letter-card">
+      <div class="letter-ribbon">
+        <i data-lucide="moon" style="width: 15px; height: 15px; fill: #ffd700; stroke: #ffd700;"></i>
+        <span>To the Moon and Back ✨</span>
+      </div>
+      
+      <button id="close-modal" class="close-modal-btn" title="ปิดการ์ด">
+        <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+      </button>
+
+      <div class="letter-header">
+        <h2 style="font-size: 1.65rem; color: #9c274b; display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <span>🌙</span> รักเท่าไปกลับดวงจันทร์ <span>✨</span>
+        </h2>
+        <p style="color: #925368; font-size: 0.88rem; margin-top: 4px;">I love you to the moon and back, forever & always</p>
+      </div>
+
+      <div class="message-box">
+        <div id="love-message" class="message-text" contenteditable="true" spellcheck="false">รักเท่าไปกลับดวงจันทร์ 🌙✨
+
+เธอคือรอยยิ้ม ความสดใส และความสุขในทุกๆ วัน
+เหมือนดอกทานตะวันที่จะหันมองแค่พระอาทิตย์ดวงเดียว ☀️💛
+ขอบคุณที่คอยอยู่ข้างกันและทำให้โลกใบนี้น่ารักขึ้นนะ
+
+รักเธอที่สุดในจักรวาลเลย! 🌻🚀💫</div>
+      </div>
+
+      <div class="letter-actions">
+        <button id="btn-copy-card" class="btn-sweet btn-sweet-secondary">
+          <i data-lucide="copy" style="width: 16px; height: 16px;"></i>
+          <span>คัดลอกข้อความ</span>
+        </button>
+        <button id="btn-send-love" class="btn-sweet btn-sweet-primary">
+          <i data-lucide="sparkles" style="width: 16px; height: 16px;"></i>
+          <span>ส่งความรัก & ปิดการ์ด 💖</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3D Bouquet Logic -->
+  <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
+    /* =========================================================================
+       1. WEB AUDIO SYNTHESIZER (ROMANTIC MUSIC BOX)
+       Zero external audio files required! Plays a cozy, sweet music box melody
+       ========================================================================= */
+    class RomanticMusicBox {
+      constructor() {
+        this.ctx = null;
+        this.isPlaying = false;
+        this.timer = null;
+        this.noteIndex = 0;
+        
+        // Sweet romantic melody notes (Canon / Arpeggio in D/G Major)
+        this.notes = [
+          // Bar 1
+          { note: 'D5', dur: 0.5 }, { note: 'F#5', dur: 0.5 }, { note: 'A5', dur: 0.5 }, { note: 'D6', dur: 0.8 },
+          { note: 'A5', dur: 0.5 }, { note: 'F#5', dur: 0.5 },
+          // Bar 2
+          { note: 'B4', dur: 0.5 }, { note: 'D5', dur: 0.5 }, { note: 'G5', dur: 0.5 }, { note: 'B5', dur: 0.8 },
+          { note: 'G5', dur: 0.5 }, { note: 'D5', dur: 0.5 },
+          // Bar 3
+          { note: 'G4', dur: 0.5 }, { note: 'B4', dur: 0.5 }, { note: 'D5', dur: 0.5 }, { note: 'G5', dur: 0.8 },
+          { note: 'E5', dur: 0.5 }, { note: 'D5', dur: 0.5 },
+          // Bar 4
+          { note: 'A4', dur: 0.5 }, { note: 'C#5', dur: 0.5 }, { note: 'E5', dur: 0.5 }, { note: 'A5', dur: 0.8 },
+          { note: 'G5', dur: 0.5 }, { note: 'E5', dur: 0.5 },
+          // Bar 5 (Climax sweet)
+          { note: 'F#5', dur: 0.5 }, { note: 'A5', dur: 0.5 }, { note: 'D6', dur: 0.6 }, { note: 'E6', dur: 0.4 },
+          { note: 'F#6', dur: 1.0 }, { note: 'E6', dur: 0.5 }, { note: 'D6', dur: 0.8 }
+        ];
+
+        this.freqTable = {
+          'G4': 392.00, 'A4': 440.00, 'B4': 493.88, 'C#5': 554.37, 'D5': 587.33,
+          'E5': 659.25, 'F#5': 739.99, 'G5': 783.99, 'A5': 880.00, 'B5': 987.77,
+          'C#6': 1108.73, 'D6': 1174.66, 'E6': 1318.51, 'F#6': 1479.98
+        };
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+        }
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      playTone(freq, time = 0, duration = 1.2) {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime + time;
+
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        // Music Box timbre: sine with subtle harmonic
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now);
+
+        // Bell-like strike decay envelope
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(0.24, now + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + duration + 0.1);
+      }
+
+      playInteractiveBloom() {
+        this.init();
+        // Play sweet harp chime chord (D-F#-A-D)
+        const chord = [587.33, 739.99, 880.00, 1174.66];
+        chord.forEach((freq, idx) => {
+          this.playTone(freq, idx * 0.08, 1.4);
+        });
+      }
+
+      start() {
+        this.init();
+        this.isPlaying = true;
+        this.noteIndex = 0;
+        this.scheduleNext();
+      }
+
+      stop() {
+        this.isPlaying = false;
+        if (this.timer) {
+          clearTimeout(this.timer);
+          this.timer = null;
+        }
+      }
+
+      toggle() {
+        if (this.isPlaying) {
+          this.stop();
+          return false;
+        } else {
+          this.start();
+          return true;
+        }
+      }
+
+      scheduleNext() {
+        if (!this.isPlaying) return;
+        const current = this.notes[this.noteIndex];
+        const freq = this.freqTable[current.note] || 587.33;
+        this.playTone(freq, 0, current.dur * 1.6);
+
+        this.noteIndex = (this.noteIndex + 1) % this.notes.length;
+        const nextDelay = current.dur * 720;
+        this.timer = setTimeout(() => this.scheduleNext(), nextDelay);
+      }
+    }
+
+    const musicBox = new RomanticMusicBox();
+
+    /* =========================================================================
+       2. THREE.JS 3D SCENE SETUP
+       ========================================================================= */
+    const canvas = document.getElementById('webgl-canvas');
+    const renderer = new THREE.WebGLRenderer({
+      canvas: canvas,
+      antialias: true,
+      alpha: true,
+      preserveDrawingBuffer: true
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+
+    const scene = new THREE.Scene();
+
+    const camera = new THREE.PerspectiveCamera(
+      45,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      100
+    );
+    // Adjusted initial camera position to view bouquet nicely
+    camera.position.set(0, 1.2, 9.2);
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.maxDistance = 18;
+    controls.minDistance = 3.5;
+    controls.maxPolarAngle = Math.PI / 2 + 0.25; // Prevent viewing from straight underneath
+    controls.target.set(0, 0.4, 0);
+
+    /* =========================================================================
+       3. LIGHTING (Soft Warm Romantic Sunlight & Ambient Rose Bloom)
+       ========================================================================= */
+    // Ambient light with soft warm rose tint
+    const ambientLight = new THREE.AmbientLight(0xfff0f4, 0.95);
+    scene.add(ambientLight);
+
+    // Main Warm Sun Key Light
+    const sunLight = new THREE.DirectionalLight(0xfff8e8, 1.35);
+    sunLight.position.set(6, 12, 8);
+    sunLight.castShadow = true;
+    sunLight.shadow.mapSize.width = 2048;
+    sunLight.shadow.mapSize.height = 2048;
+    sunLight.shadow.bias = -0.0005;
+    scene.add(sunLight);
+
+    // Soft Pink Fill Light (from left-back)
+    const fillLight = new THREE.DirectionalLight(0xfdc9d6, 0.7);
+    fillLight.position.set(-6, 4, 4);
+    scene.add(fillLight);
+
+    // Back Rim Light to give petals a glowing golden rim
+    const rimLight = new THREE.DirectionalLight(0xffe29a, 0.9);
+    rimLight.position.set(0, 8, -7);
+    scene.add(rimLight);
+
+    /* =========================================================================
+       4. PROCEDURAL TEXTURES (Sunflowers & Pink Wrapping with Smiley Faces)
+       ========================================================================= */
+    // 4.1 Sunflower Center Disc Texture (Fibonacci Spiral Phyllotaxis)
+    function createSunflowerCenterTexture() {
+      const size = 512;
+      const cvs = document.createElement('canvas');
+      cvs.width = size;
+      cvs.height = size;
+      const ctx = cvs.getContext('2d');
+
+      // Base dark chocolate espresso radial gradient
+      const grad = ctx.createRadialGradient(size/2, size/2, 10, size/2, size/2, size/2);
+      grad.addColorStop(0, '#2d180f');
+      grad.addColorStop(0.65, '#3b2014');
+      grad.addColorStop(0.88, '#4a2919');
+      grad.addColorStop(1.0, '#5a3420');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, size, size);
+
+      // Fermat's Golden Angle Spiral (137.508 degrees)
+      const phi = 137.508 * (Math.PI / 180);
+      const totalSeeds = 900;
+      const maxRadius = (size / 2) - 10;
+
+      for (let i = 0; i < totalSeeds; i++) {
+        const r = Math.sqrt(i / totalSeeds) * maxRadius;
+        const theta = i * phi;
+        const x = size / 2 + r * Math.cos(theta);
+        const y = size / 2 + r * Math.sin(theta);
+        const dotRadius = 1.8 + (r / maxRadius) * 2.8;
+
+        // Seed color transition: inner dark espresso, outer fringe golden-florets
+        const isOuterFringe = r > maxRadius * 0.82;
+        ctx.beginPath();
+        ctx.arc(x, y, dotRadius, 0, Math.PI * 2);
+        if (isOuterFringe) {
+          ctx.fillStyle = (i % 3 === 0) ? '#d49b14' : '#e5b225'; // Golden floret ring
+        } else {
+          ctx.fillStyle = (i % 2 === 0) ? '#1c0f0a' : '#331a10'; // Dark seed
+        }
+        ctx.fill();
+      }
+
+      const texture = new THREE.CanvasTexture(cvs);
+      texture.wrapS = THREE.ClampToEdgeWrapping;
+      texture.wrapT = THREE.ClampToEdgeWrapping;
+      return texture;
+    }
+
+    // 4.2 Pink Wrapping Paper Texture with Cute Subtle Yellow Smiley Faces (Reference Image!)
+    function createWrappingPaperTexture() {
+      const size = 512;
+      const cvs = document.createElement('canvas');
+      cvs.width = size;
+      cvs.height = size;
+      const ctx = cvs.getContext('2d');
+
+      // Pastel Blush Pink Background
+      ctx.fillStyle = '#f9d3de';
+      ctx.fillRect(0, 0, size, size);
+
+      // Soft paper grain subtle noise
+      for (let i = 0; i < 4000; i++) {
+        ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.08)' : 'rgba(235,170,185,0.08)';
+        ctx.fillRect(Math.random() * size, Math.random() * size, 2, 2);
+      }
+
+      // Draw cute yellow smiley face badges at clean pattern intervals
+      const step = 90;
+      for (let x = 30; x < size; x += step) {
+        for (let y = 30; y < size; y += step) {
+          const offsetX = (y % (step * 2) === 0) ? step / 2 : 0;
+          const cx = (x + offsetX) % size;
+          const cy = y;
+
+          // Cute Yellow Badge Circle
+          ctx.beginPath();
+          ctx.arc(cx, cy, 14, 0, Math.PI * 2);
+          ctx.fillStyle = '#fed634';
+          ctx.fill();
+          ctx.lineWidth = 1.2;
+          ctx.strokeStyle = '#4a2505';
+          ctx.stroke();
+
+          // Smiley Eyes
+          ctx.fillStyle = '#4a2505';
+          ctx.beginPath();
+          ctx.arc(cx - 4.5, cy - 3, 1.8, 0, Math.PI * 2);
+          ctx.arc(cx + 4.5, cy - 3, 1.8, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Smiling Mouth curve
+          ctx.beginPath();
+          ctx.arc(cx, cy + 1, 7, 0.15 * Math.PI, 0.85 * Math.PI, false);
+          ctx.lineWidth = 1.4;
+          ctx.strokeStyle = '#4a2505';
+          ctx.stroke();
+        }
+      }
+
+      const texture = new THREE.CanvasTexture(cvs);
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      texture.repeat.set(2, 2);
+      return texture;
+    }
+
+    const sunflowerCenterTex = createSunflowerCenterTexture();
+    const wrappingPaperTex = createWrappingPaperTexture();
+
+    /* =========================================================================
+       5. 3D GEOMETRY GENERATORS: SUNFLOWER, CHAMOMILE, CRASPEDIA, EUCALYPTUS
+       ========================================================================= */
+    const bouquetGroup = new THREE.Group();
+    scene.add(bouquetGroup);
+
+    // Array to store interactive clickable flower meshes
+    const interactiveFlowers = [];
+
+    // 5.1 Sunflower Petal Geometry (Curved realistic tapered petal)
+    function createPetalGeometry(width = 0.42, length = 1.55) {
+      const shape = new THREE.Shape();
+      // Draw petal silhouette: narrow base, wide middle, tapered sharp tip
+      shape.moveTo(0, 0);
+      shape.quadraticCurveTo(-width * 0.7, length * 0.35, -width, length * 0.65);
+      shape.quadraticCurveTo(-width * 0.8, length * 0.88, 0, length); // Tip
+      shape.quadraticCurveTo(width * 0.8, length * 0.88, width, length * 0.65);
+      shape.quadraticCurveTo(width * 0.7, length * 0.35, 0, 0);
+
+      const extrudeSettings = {
+        depth: 0.04,
+        bevelEnabled: true,
+        bevelSegments: 2,
+        steps: 1,
+        bevelSize: 0.015,
+        bevelThickness: 0.02
+      };
+
+      const geom = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+      geom.center();
+      // Adjust pivot to base of petal
+      geom.translate(0, length / 2, 0);
+
+      // Curve petal vertices backward naturally
+      const pos = geom.attributes.position;
+      for (let i = 0; i < pos.count; i++) {
+        const y = pos.getY(i);
+        // Slight organic curl along length
+        const curl = Math.sin((y / length) * Math.PI * 0.75) * 0.16;
+        pos.setZ(i, pos.getZ(i) - curl);
+      }
+      geom.computeVertexNormals();
+      return geom;
+    }
+
+    const petalGeomOuter = createPetalGeometry(0.38, 1.45);
+    const petalGeomInner = createPetalGeometry(0.32, 1.25);
+
+    // Petal Materials: Rich golden sunflower yellow with warm gradient
+    const petalMaterialOuter = new THREE.MeshStandardMaterial({
+      color: 0xffb703,
+      roughness: 0.4,
+      metalness: 0.05,
+      side: THREE.DoubleSide
+    });
+
+    const petalMaterialInner = new THREE.MeshStandardMaterial({
+      color: 0xffa000,
+      roughness: 0.45,
+      metalness: 0.05,
+      side: THREE.DoubleSide
+    });
+
+    // 5.2 Build One Complete Sunflower Head
+    function createSunflower(scale = 1.0) {
+      const flower = new THREE.Group();
+
+      // Sunflower Center Disc (Thick dome)
+      const centerGeom = new THREE.CylinderGeometry(0.85, 0.75, 0.28, 36);
+      const centerMat = new THREE.MeshStandardMaterial({
+        map: sunflowerCenterTex,
+        roughness: 0.85,
+        metalness: 0.05
+      });
+      const centerMesh = new THREE.Mesh(centerGeom, centerMat);
+      centerMesh.rotation.x = Math.PI / 2;
+      centerMesh.castShadow = true;
+      flower.add(centerMesh);
+
+      // Outer Layer of Petals (24 petals)
+      const outerCount = 24;
+      for (let i = 0; i < outerCount; i++) {
+        const angle = (i / outerCount) * Math.PI * 2;
+        const petal = new THREE.Mesh(petalGeomOuter, petalMaterialOuter);
+        petal.position.set(0, 0, -0.05);
+        petal.rotation.z = angle;
+        // Tilt slightly outward
+        petal.rotation.x = 0.12 + (Math.sin(i * 3) * 0.03);
+        petal.translateY(0.72);
+        petal.castShadow = true;
+        flower.add(petal);
+      }
+
+      // Inner Layer of Petals (22 petals, offset)
+      const innerCount = 22;
+      for (let i = 0; i < innerCount; i++) {
+        const angle = ((i + 0.5) / innerCount) * Math.PI * 2;
+        const petal = new THREE.Mesh(petalGeomInner, petalMaterialInner);
+        petal.position.set(0, 0, 0.04);
+        petal.rotation.z = angle;
+        petal.rotation.x = 0.2 + (Math.cos(i * 2) * 0.04);
+        petal.translateY(0.70);
+        petal.castShadow = true;
+        flower.add(petal);
+      }
+
+      // Green Sepal / Calyx at the rear
+      const sepalGeom = new THREE.ConeGeometry(0.8, 0.4, 16);
+      const sepalMat = new THREE.MeshStandardMaterial({
+        color: 0x486933,
+        roughness: 0.7
+      });
+      const sepal = new THREE.Mesh(sepalGeom, sepalMat);
+      sepal.position.set(0, 0, -0.25);
+      sepal.rotation.x = -Math.PI / 2;
+      flower.add(sepal);
+
+      flower.scale.set(scale, scale, scale);
+      flower.userData = { isFlower: true, initialScale: scale, animTime: 0 };
+      interactiveFlowers.push(flower);
+      return flower;
+    }
+
+    // 5.3 Chamomile / Baby's Breath White Filler Flowers (ดอกคัตเตอร์/คาโมมายล์)
+    function createChamomileCluster() {
+      const cluster = new THREE.Group();
+      const numFlowers = 4 + Math.floor(Math.random() * 3);
+
+      const chamomileCenterGeom = new THREE.SphereGeometry(0.09, 12, 12);
+      const chamomileCenterMat = new THREE.MeshStandardMaterial({
+        color: 0xffd200,
+        roughness: 0.5
+      });
+
+      const chamomilePetalGeom = new THREE.ConeGeometry(0.04, 0.22, 6);
+      chamomilePetalGeom.translate(0, 0.11, 0);
+      const chamomilePetalMat = new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        roughness: 0.35
+      });
+
+      for (let f = 0; f < numFlowers; f++) {
+        const singleFlower = new THREE.Group();
+        // Yellow center
+        const center = new THREE.Mesh(chamomileCenterGeom, chamomileCenterMat);
+        singleFlower.add(center);
+
+        // 12 tiny white petals
+        for (let p = 0; p < 12; p++) {
+          const pAngle = (p / 12) * Math.PI * 2;
+          const petal = new THREE.Mesh(chamomilePetalGeom, chamomilePetalMat);
+          petal.rotation.z = pAngle;
+          petal.rotation.x = 0.08;
+          singleFlower.add(petal);
+        }
+
+        // Stem
+        const stemGeom = new THREE.CylinderGeometry(0.02, 0.02, 0.8, 6);
+        const stemMat = new THREE.MeshStandardMaterial({ color: 0x5a7a3e });
+        const stem = new THREE.Mesh(stemGeom, stemMat);
+        stem.position.y = -0.4;
+        singleFlower.add(stem);
+
+        // Position within cluster
+        const offsetR = 0.18 + Math.random() * 0.22;
+        const offsetA = (f / numFlowers) * Math.PI * 2 + Math.random() * 0.3;
+        singleFlower.position.set(
+          Math.cos(offsetA) * offsetR,
+          Math.sin(offsetA) * offsetR,
+          (Math.random() - 0.5) * 0.2
+        );
+        singleFlower.rotation.x = (Math.random() - 0.5) * 0.4;
+        singleFlower.rotation.y = (Math.random() - 0.5) * 0.4;
+        cluster.add(singleFlower);
+      }
+
+      return cluster;
+    }
+
+    // 5.4 Craspedia / Billy Balls (Yellow Fluffy Spheres)
+    function createBillyBall() {
+      const group = new THREE.Group();
+      const headGeom = new THREE.DodecahedronGeometry(0.24, 2);
+      const headMat = new THREE.MeshStandardMaterial({
+        color: 0xf5b301,
+        roughness: 0.85,
+        bumpScale: 0.05
+      });
+      const head = new THREE.Mesh(headGeom, headMat);
+      head.castShadow = true;
+      group.add(head);
+
+      const stemGeom = new THREE.CylinderGeometry(0.025, 0.025, 1.2, 6);
+      const stemMat = new THREE.MeshStandardMaterial({ color: 0x55733d });
+      const stem = new THREE.Mesh(stemGeom, stemMat);
+      stem.position.y = -0.6;
+      group.add(stem);
+
+      return group;
+    }
+
+    // 5.5 Eucalyptus Foliage Sprig (Rounded Sage-Green Leaves)
+    function createEucalyptusSprig() {
+      const sprig = new THREE.Group();
+      const stemLength = 2.0;
+      const stemGeom = new THREE.CylinderGeometry(0.03, 0.035, stemLength, 8);
+      const stemMat = new THREE.MeshStandardMaterial({ color: 0x6e875f });
+      const stem = new THREE.Mesh(stemGeom, stemMat);
+      stem.position.y = stemLength / 2;
+      sprig.add(stem);
+
+      const leafGeom = new THREE.CircleGeometry(0.22, 16);
+      const leafMat = new THREE.MeshStandardMaterial({
+        color: 0x6f917a, // Sage eucalyptus green
+        roughness: 0.6,
+        side: THREE.DoubleSide
+      });
+
+      // Opposite leaf pairs along stem
+      const pairs = 5;
+      for (let i = 0; i < pairs; i++) {
+        const heightY = 0.5 + (i / pairs) * (stemLength - 0.7);
+        const leafScale = 0.85 + (i / pairs) * 0.35;
+
+        // Left leaf
+        const leftLeaf = new THREE.Mesh(leafGeom, leafMat);
+        leftLeaf.position.set(-0.16, heightY, 0);
+        leftLeaf.rotation.y = -Math.PI / 4;
+        leftLeaf.rotation.z = Math.PI / 6;
+        leftLeaf.scale.set(leafScale, leafScale, leafScale);
+        sprig.add(leftLeaf);
+
+        // Right leaf
+        const rightLeaf = new THREE.Mesh(leafGeom, leafMat);
+        rightLeaf.position.set(0.16, heightY, 0);
+        rightLeaf.rotation.y = Math.PI / 4;
+        rightLeaf.rotation.z = -Math.PI / 6;
+        rightLeaf.scale.set(leafScale, leafScale, leafScale);
+        sprig.add(rightLeaf);
+      }
+
+      return sprig;
+    }
+
+    /* =========================================================================
+       6. ASSEMBLE BOUQUET (SUNFLOWERS + FILLERS + PINK WRAPPING + RIBBON)
+       ========================================================================= */
+    const flowersGroup = new THREE.Group();
+    bouquetGroup.add(flowersGroup);
+
+    // 6.1 Sunflowers Layout (Faithful to Reference Image: 5 Main Sunflowers)
+    // 1 Center Dominant Sunflower
+    const sfCenter = createSunflower(1.15);
+    sfCenter.position.set(0, 0.65, 0.7);
+    sfCenter.rotation.x = -0.22;
+    flowersGroup.add(sfCenter);
+
+    // 4 Surrounding Sunflowers angled outward
+    const sfTop = createSunflower(1.05);
+    sfTop.position.set(0, 1.85, 0.35);
+    sfTop.rotation.x = -0.45;
+    flowersGroup.add(sfTop);
+
+    const sfLeft = createSunflower(1.0);
+    sfLeft.position.set(-1.18, 0.85, 0.45);
+    sfLeft.rotation.x = -0.25;
+    sfLeft.rotation.y = 0.48;
+    flowersGroup.add(sfLeft);
+
+    const sfRight = createSunflower(1.02);
+    sfRight.position.set(1.18, 0.82, 0.45);
+    sfRight.rotation.x = -0.25;
+    sfRight.rotation.y = -0.48;
+    flowersGroup.add(sfRight);
+
+    const sfBottom = createSunflower(0.98);
+    sfBottom.position.set(-0.15, -0.42, 0.75);
+    sfBottom.rotation.x = 0.15;
+    flowersGroup.add(sfBottom);
+
+    // 6.2 Chamomile Clusters nestled between sunflowers
+    const chamomilePositions = [
+      { x: -0.65, y: 1.45, z: 0.65, rx: -0.3, ry: 0.2 },
+      { x: 0.7, y: 1.42, z: 0.65, rx: -0.3, ry: -0.2 },
+      { x: -1.25, y: -0.05, z: 0.6, rx: 0.1, ry: 0.5 },
+      { x: 1.15, y: -0.1, z: 0.6, rx: 0.1, ry: -0.5 },
+      { x: 0.75, y: 0.15, z: 0.7, rx: 0.0, ry: -0.3 },
+      { x: -0.75, y: 0.18, z: 0.7, rx: 0.0, ry: 0.3 },
+      { x: 0, y: 2.35, z: 0.1, rx: -0.6, ry: 0 }
+    ];
+
+    chamomilePositions.forEach(pos => {
+      const cluster = createChamomileCluster();
+      cluster.position.set(pos.x, pos.y, pos.z);
+      cluster.rotation.x = pos.rx;
+      cluster.rotation.y = pos.ry;
+      flowersGroup.add(cluster);
+    });
+
+    // 6.3 Craspedia Billy Balls (Pop of sunny yellow spheres)
+    const billyPositions = [
+      { x: -0.9, y: 1.9, z: 0.4 },
+      { x: 0.85, y: 2.05, z: 0.35 },
+      { x: -1.6, y: 0.6, z: 0.3 },
+      { x: 1.55, y: 0.5, z: 0.3 },
+      { x: 0.55, y: -0.7, z: 0.6 },
+      { x: -0.65, y: -0.65, z: 0.6 }
+    ];
+
+    billyPositions.forEach(p => {
+      const ball = createBillyBall();
+      ball.position.set(p.x, p.y, p.z);
+      flowersGroup.add(ball);
+    });
+
+    // 6.4 Eucalyptus Sprigs radiating around the bouquet perimeter
+    const eucaAngles = [
+      { angle: 0.2, rotZ: -0.6, y: 1.6, x: 1.4 },
+      { angle: -0.2, rotZ: 0.6, y: 1.6, x: -1.4 },
+      { angle: 0.0, rotZ: -0.1, y: 2.3, x: 0.0 },
+      { angle: 0.6, rotZ: -1.1, y: 0.5, x: 1.8 },
+      { angle: -0.6, rotZ: 1.1, y: 0.5, x: -1.8 },
+      { angle: 1.1, rotZ: -1.4, y: -0.4, x: 1.5 },
+      { angle: -1.1, rotZ: 1.4, y: -0.4, x: -1.5 }
+    ];
+
+    eucaAngles.forEach(e => {
+      const sprig = createEucalyptusSprig();
+      sprig.position.set(e.x, e.y, 0.2);
+      sprig.rotation.z = e.rotZ;
+      sprig.rotation.x = -0.3;
+      sprig.scale.set(0.85, 0.85, 0.85);
+      flowersGroup.add(sprig);
+    });
+
+    // 6.5 Pastel Pink Wrapping Paper (กระดาษห่อช่อดอกไม้)
+    // Multi-layered folding paper collars with cute smiley face pattern
+    const wrappingGroup = new THREE.Group();
+    bouquetGroup.add(wrappingGroup);
+
+    const wrapMaterial = new THREE.MeshStandardMaterial({
+      map: wrappingPaperTex,
+      roughness: 0.75,
+      metalness: 0.05,
+      side: THREE.DoubleSide
+    });
+
+    const wrapInnerMaterial = new THREE.MeshStandardMaterial({
+      color: 0xf9d6e0,
+      roughness: 0.8,
+      metalness: 0.05,
+      side: THREE.DoubleSide
+    });
+
+    // Outer Back Fans (Flared collar around the flowers)
+    const collarGeom = new THREE.CylinderGeometry(3.3, 1.2, 3.4, 18, 1, true, 0, Math.PI * 2);
+    // Flatten cone front-to-back slightly for bouquet shape
+    collarGeom.scale(1.0, 1.0, 0.75);
+    const outerCollar = new THREE.Mesh(collarGeom, wrapMaterial);
+    outerCollar.position.set(0, 0.5, -0.2);
+    outerCollar.rotation.x = -0.15;
+    wrappingGroup.add(outerCollar);
+
+    // Front Folded Layer (Flared scalloped front lapels)
+    const frontCollarGeom = new THREE.CylinderGeometry(2.8, 1.0, 2.6, 14, 1, true, -Math.PI * 0.45, Math.PI * 0.9);
+    frontCollarGeom.scale(1.0, 1.0, 0.8);
+    const frontCollar = new THREE.Mesh(frontCollarGeom, wrapMaterial);
+    frontCollar.position.set(0, 0.15, 0.25);
+    frontCollar.rotation.x = 0.18;
+    wrappingGroup.add(frontCollar);
+
+    // Lower Handle Wrapping (Cone hugging the stems tightly)
+    const handleGeom = new THREE.CylinderGeometry(1.0, 0.55, 2.5, 16);
+    const handleWrap = new THREE.Mesh(handleGeom, wrapMaterial);
+    handleWrap.position.set(0, -1.9, -0.05);
+    handleWrap.rotation.x = 0.08;
+    wrappingGroup.add(handleWrap);
+
+    // Exposed Stems at bottom
+    const bottomStemsGeom = new THREE.CylinderGeometry(0.5, 0.45, 0.9, 12);
+    const stemsMat = new THREE.MeshStandardMaterial({ color: 0x486b36, roughness: 0.8 });
+    const bottomStems = new THREE.Mesh(bottomStemsGeom, stemsMat);
+    bottomStems.position.set(0, -3.3, -0.1);
+    wrappingGroup.add(bottomStems);
+
+    // 6.6 Satin Ribbon and Bow (โบว์ริบบิ้น)
+    const ribbonGroup = new THREE.Group();
+    ribbonGroup.position.set(0, -0.75, 0.95);
+    bouquetGroup.add(ribbonGroup);
+
+    const ribbonMat = new THREE.MeshStandardMaterial({
+      color: 0xffffff,
+      roughness: 0.3,
+      metalness: 0.15
+    });
+
+    // Central Knot
+    const knotGeom = new THREE.SphereGeometry(0.22, 16, 16);
+    const knot = new THREE.Mesh(knotGeom, ribbonMat);
+    ribbonGroup.add(knot);
+
+    // Left & Right Bow Loops
+    const bowLoopGeom = new THREE.TorusGeometry(0.42, 0.12, 12, 24, Math.PI * 1.8);
+    const leftBow = new THREE.Mesh(bowLoopGeom, ribbonMat);
+    leftBow.position.set(-0.38, 0.12, 0);
+    leftBow.rotation.set(0, -0.3, 0.7);
+    ribbonGroup.add(leftBow);
+
+    const rightBow = new THREE.Mesh(bowLoopGeom, ribbonMat);
+    rightBow.position.set(0.38, 0.12, 0);
+    rightBow.rotation.set(0, 0.3, -0.7);
+    ribbonGroup.add(rightBow);
+
+    // Ribbon Hanging Tails
+    const tailShape = new THREE.Shape();
+    tailShape.moveTo(-0.16, 0);
+    tailShape.lineTo(0.16, 0);
+    tailShape.lineTo(0.12, -1.5);
+    tailShape.lineTo(0, -1.35); // V-cut tail
+    tailShape.lineTo(-0.12, -1.5);
+    tailShape.closePath();
+
+    const tailGeom = new THREE.ShapeGeometry(tailShape);
+    const leftTail = new THREE.Mesh(tailGeom, ribbonMat);
+    leftTail.position.set(-0.18, -0.1, 0.05);
+    leftTail.rotation.set(0.2, 0, 0.25);
+    ribbonGroup.add(leftTail);
+
+    const rightTail = new THREE.Mesh(tailGeom, ribbonMat);
+    rightTail.position.set(0.18, -0.1, 0.05);
+    rightTail.rotation.set(0.2, 0, -0.25);
+    ribbonGroup.add(rightTail);
+
+    /* =========================================================================
+       7. FAIRY LIGHTS SYSTEM (ไฟประดับช่อดอกไม้)
+       ========================================================================= */
+    const fairyLightsGroup = new THREE.Group();
+    bouquetGroup.add(fairyLightsGroup);
+
+    const fairyBeads = [];
+    const fairyCount = 38;
+    const beadGeom = new THREE.SphereGeometry(0.06, 8, 8);
+    const beadMat = new THREE.MeshBasicMaterial({ color: 0xfff6c2 });
+
+    for (let i = 0; i < fairyCount; i++) {
+      const bead = new THREE.Mesh(beadGeom, beadMat);
+      // Scatter beads naturally around flower dome
+      const angle = (i / fairyCount) * Math.PI * 6.5;
+      const radius = 0.5 + (i / fairyCount) * 1.7;
+      const y = 1.9 - (i / fairyCount) * 2.2;
+      const z = 0.45 + Math.sin(i * 1.7) * 0.4;
+
+      bead.position.set(Math.cos(angle) * radius, y, z);
+      bead.userData = {
+        baseY: y,
+        phase: Math.random() * Math.PI * 2,
+        speed: 2.0 + Math.random() * 2.0
+      };
+      fairyBeads.push(bead);
+      fairyLightsGroup.add(bead);
+    }
+
+    // 2 Warm PointLights nestled inside the bouquet for dynamic fairy glow
+    const fairyLightA = new THREE.PointLight(0xffdd88, 1.2, 4.5);
+    fairyLightA.position.set(0.5, 1.0, 0.8);
+    fairyLightsGroup.add(fairyLightA);
+
+    const fairyLightB = new THREE.PointLight(0xffb899, 1.0, 4.0);
+    fairyLightB.position.set(-0.6, 0.4, 0.7);
+    fairyLightsGroup.add(fairyLightB);
+
+    /* =========================================================================
+       8. FLOATING ROMANTIC PARTICLES (PETALS & HEARTS)
+       ========================================================================= */
+    // Generate soft heart canvas texture for particles
+    function createHeartTexture() {
+      const cvs = document.createElement('canvas');
+      cvs.width = 128;
+      cvs.height = 128;
+      const ctx = cvs.getContext('2d');
+
+      ctx.fillStyle = '#ff6b8b';
+      ctx.beginPath();
+      const topCurveHeight = 35;
+      ctx.moveTo(64, 40);
+      ctx.bezierCurveTo(64, 20, 30, 20, 30, 45);
+      ctx.bezierCurveTo(30, 75, 64, 98, 64, 110);
+      ctx.bezierCurveTo(64, 98, 98, 75, 98, 45);
+      ctx.bezierCurveTo(98, 20, 64, 20, 64, 40);
+      ctx.fill();
+
+      return new THREE.CanvasTexture(cvs);
+    }
+
+    const heartTexture = createHeartTexture();
+    const particleCount = 45;
+    const particleGeometry = new THREE.BufferGeometry();
+    const particlePositions = new Float32Array(particleCount * 3);
+    const particleVelocities = [];
+
+    for (let i = 0; i < particleCount; i++) {
+      particlePositions[i * 3 + 0] = (Math.random() - 0.5) * 12;
+      particlePositions[i * 3 + 1] = (Math.random() - 0.5) * 10;
+      particlePositions[i * 3 + 2] = (Math.random() - 0.5) * 8;
+
+      particleVelocities.push({
+        y: 0.008 + Math.random() * 0.015,
+        xWobble: 0.5 + Math.random() * 1.5,
+        zWobble: 0.5 + Math.random() * 1.5,
+        phase: Math.random() * Math.PI * 2
+      });
+    }
+
+    particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+
+    const particleMaterial = new THREE.PointsMaterial({
+      map: heartTexture,
+      size: 0.42,
+      transparent: true,
+      opacity: 0.75,
+      blending: THREE.NormalBlending,
+      depthWrite: false
+    });
+
+    const particleSystem = new THREE.Points(particleGeometry, particleMaterial);
+    scene.add(particleSystem);
+
+    /* =========================================================================
+       9. INTERACTION: RAYCASTING & CLICK TO OPEN "รักเท่าไปกลับดวงจันทร์" CARD
+       ========================================================================= */
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    let pointerDownPos = { x: 0, y: 0, time: 0 };
+
+    function triggerBouquetCard(flower) {
+      if (flower && flower.userData) {
+        flower.userData.animTime = 1.0; // Trigger organic bloom bounce
+      }
+      musicBox.playInteractiveBloom();
+      spawnConfettiHearts();
+      showToast('🌙 รักเท่าไปกลับดวงจันทร์ ✨');
+      
+      // Open the Love Card modal with romantic ease
+      setTimeout(() => {
+        letterModal.classList.add('open');
+      }, 180);
+    }
+
+    window.addEventListener('pointerdown', (e) => {
+      // Ignore if clicking UI elements
+      if (e.target.closest('#ui-container') || e.target.closest('#letter-modal')) return;
+      pointerDownPos = { x: e.clientX, y: e.clientY, time: performance.now() };
+    });
+
+    window.addEventListener('pointerup', (e) => {
+      // Ignore if clicking UI elements
+      if (e.target.closest('#ui-container') || e.target.closest('#letter-modal')) return;
+
+      // Calculate distance moved and duration to distinguish rotation drag from click/tap
+      const dx = e.clientX - pointerDownPos.x;
+      const dy = e.clientY - pointerDownPos.y;
+      const dist = Math.hypot(dx, dy);
+      const duration = performance.now() - pointerDownPos.time;
+
+      // Only trigger when deliberate tap/click (drag distance <= 8px, duration < 500ms)
+      if (dist > 8 || duration > 500) return;
+
+      mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+      // Intersect the whole bouquet (sunflowers, fillers, wrapping paper, ribbon)
+      const intersects = raycaster.intersectObjects(bouquetGroup.children, true);
+
+      if (intersects.length > 0) {
+        let hitFlower = null;
+        let obj = intersects[0].object;
+        while (obj && obj !== bouquetGroup) {
+          if (obj.userData?.isFlower) {
+            hitFlower = obj;
+            break;
+          }
+          obj = obj.parent;
+        }
+        triggerBouquetCard(hitFlower || sfCenter);
+      }
+    });
+
+    // Burst of hearts when interacting
+    function spawnConfettiHearts() {
+      for (let i = 0; i < 8; i++) {
+        const randIdx = Math.floor(Math.random() * particleCount);
+        particlePositions[randIdx * 3 + 0] = (Math.random() - 0.5) * 1.8;
+        particlePositions[randIdx * 3 + 1] = 0.5 + Math.random() * 1.2;
+        particlePositions[randIdx * 3 + 2] = 0.8 + Math.random() * 1.0;
+        particleVelocities[randIdx].y = 0.04 + Math.random() * 0.03;
+      }
+      particleGeometry.attributes.position.needsUpdate = true;
+    }
+
+    /* =========================================================================
+       10. ANIMATION LOOP
+       ========================================================================= */
+    let autoRotate = true;
+    let fairyLightsActive = true;
+    let particlesActive = true;
+    const clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      const elapsedTime = clock.getElapsedTime();
+      const delta = clock.getDelta();
+
+      // Gentle Bouquet Sway & Auto Rotation
+      if (autoRotate) {
+        bouquetGroup.rotation.y += 0.007;
+      }
+      // Natural gentle floating breathing motion
+      bouquetGroup.position.y = Math.sin(elapsedTime * 1.2) * 0.08;
+      bouquetGroup.rotation.z = Math.sin(elapsedTime * 0.8) * 0.02;
+
+      // Animate interactive flower bloom bounce
+      interactiveFlowers.forEach(f => {
+        if (f.userData.animTime > 0) {
+          f.userData.animTime -= 0.035;
+          const bounce = Math.sin((1 - f.userData.animTime) * Math.PI) * 0.22;
+          const s = f.userData.initialScale + bounce;
+          f.scale.set(s, s, s);
+        }
+      });
+
+      // Animate Fairy Lights Twinkle
+      if (fairyLightsActive) {
+        fairyLightsGroup.visible = true;
+        fairyBeads.forEach(b => {
+          const intensity = 0.4 + 0.6 * Math.sin(elapsedTime * b.userData.speed + b.userData.phase);
+          b.scale.setScalar(0.7 + intensity * 0.5);
+        });
+        fairyLightA.intensity = 1.0 + Math.sin(elapsedTime * 3) * 0.3;
+        fairyLightB.intensity = 0.8 + Math.cos(elapsedTime * 2.5) * 0.3;
+      } else {
+        fairyLightsGroup.visible = false;
+      }
+
+      // Animate Floating Heart Particles
+      if (particlesActive) {
+        particleSystem.visible = true;
+        for (let i = 0; i < particleCount; i++) {
+          const v = particleVelocities[i];
+          particlePositions[i * 3 + 1] += v.y; // Float up
+          particlePositions[i * 3 + 0] += Math.sin(elapsedTime * v.xWobble + v.phase) * 0.006;
+
+          // Recycle particles when reaching top
+          if (particlePositions[i * 3 + 1] > 6) {
+            particlePositions[i * 3 + 1] = -5;
+            particlePositions[i * 3 + 0] = (Math.random() - 0.5) * 12;
+            particlePositions[i * 3 + 2] = (Math.random() - 0.5) * 8;
+          }
+        }
+        particleGeometry.attributes.position.needsUpdate = true;
+      } else {
+        particleSystem.visible = false;
+      }
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    animate();
+
+    // Responsive Canvas Resize
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    /* =========================================================================
+       11. UI INTERACTIONS & CONTROLS
+       ========================================================================= */
+    const toast = document.getElementById('toast');
+    const toastMsg = document.getElementById('toast-msg');
+    let toastTimeout = null;
+
+    function showToast(text) {
+      toastMsg.innerText = text;
+      toast.classList.add('show');
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2600);
+    }
+
+    // Toggle Music Box
+    const btnMusic = document.getElementById('btn-music');
+    btnMusic.addEventListener('click', () => {
+      const playing = musicBox.toggle();
+      btnMusic.classList.toggle('active', playing);
+      showToast(playing ? 'เปิดเสียงกล่องดนตรีหวานๆ 🎵' : 'ปิดเสียงเพลง');
+    });
+
+    // Reset Camera
+    const btnReset = document.getElementById('btn-camera-reset');
+    btnReset.addEventListener('click', () => {
+      camera.position.set(0, 1.2, 9.2);
+      controls.target.set(0, 0.4, 0);
+      bouquetGroup.rotation.set(0, 0, 0);
+      showToast('รีเซ็ตมุมมองด้านหน้าเรียบร้อย 🌻');
+    });
+
+    // Snapshot Photo
+    const btnSnapshot = document.getElementById('btn-snapshot');
+    btnSnapshot.addEventListener('click', () => {
+      // Render clean frame without lag
+      renderer.render(scene, camera);
+      const dataURL = renderer.domElement.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = dataURL;
+      a.download = 'sunflower-bouquet-for-my-sweetheart.png';
+      a.click();
+      showToast('บันทึกภาพช่อดอกไม้ความละเอียดสูงแล้ว 📸✨');
+    });
+
+    // Zen Mode / Hide UI
+    const uiContainer = document.getElementById('ui-container');
+    const btnHideUI = document.getElementById('btn-hide-ui');
+    const unhideBtn = document.getElementById('unhide-btn');
+
+    btnHideUI.addEventListener('click', () => {
+      uiContainer.classList.add('hidden-ui');
+      unhideBtn.classList.add('show');
+      showToast('เข้าสู่โหมดดื่มด่ำความงาม (แตะไอคอนตาเพื่อแสดงเมนู)');
+    });
+
+    unhideBtn.addEventListener('click', () => {
+      uiContainer.classList.remove('hidden-ui');
+      unhideBtn.classList.remove('show');
+    });
+
+    // Control Chips
+    const chipRotate = document.getElementById('chip-rotate');
+    chipRotate.addEventListener('click', () => {
+      autoRotate = !autoRotate;
+      chipRotate.classList.toggle('active', autoRotate);
+      showToast(autoRotate ? 'เปิดการหมุนอัตโนมัติ 🔄' : 'หยุดหมุน (แตะเพื่อหมุนอิสระ)');
+    });
+
+    const chipFairy = document.getElementById('chip-fairy-lights');
+    chipFairy.addEventListener('click', () => {
+      fairyLightsActive = !fairyLightsActive;
+      chipFairy.classList.toggle('active', fairyLightsActive);
+      showToast(fairyLightsActive ? 'เปิดไฟประดับวิบวับ ✨' : 'ปิดไฟประดับ');
+    });
+
+    const chipPetals = document.getElementById('chip-petals');
+    chipPetals.addEventListener('click', () => {
+      particlesActive = !particlesActive;
+      chipPetals.classList.toggle('active', particlesActive);
+      showToast(particlesActive ? 'เปิดการโปรยความรัก 💕' : 'ปิดการโปรย');
+    });
+
+    // Love Letter Modal
+    const letterModal = document.getElementById('letter-modal');
+    const chipLetter = document.getElementById('chip-letter');
+    const closeModal = document.getElementById('close-modal');
+    const btnCopyCard = document.getElementById('btn-copy-card');
+    const btnSendLove = document.getElementById('btn-send-love');
+    const loveMessage = document.getElementById('love-message');
+
+    chipLetter.addEventListener('click', () => {
+      letterModal.classList.add('open');
+    });
+
+    closeModal.addEventListener('click', () => {
+      letterModal.classList.remove('open');
+    });
+
+    letterModal.addEventListener('click', (e) => {
+      if (e.target === letterModal) {
+        letterModal.classList.remove('open');
+      }
+    });
+
+    btnCopyCard.addEventListener('click', () => {
+      const text = loveMessage.innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('คัดลอกการ์ดข้อความหวานใจแล้ว 📋💌');
+      }).catch(() => {
+        showToast('คัดลอกข้อความเรียบร้อย');
+      });
+    });
+
+    btnSendLove.addEventListener('click', () => {
+      letterModal.classList.remove('open');
+      spawnConfettiHearts();
+      musicBox.playInteractiveBloom();
+      showToast('ส่งความรักและความสดใสเรียบร้อยแล้ว! 💖🌻');
+    });
+  </script>
+</body>
+</html>
